@@ -73,6 +73,7 @@ struct _GdkWaylandDeviceData
   GHashTable *touches;
 
   GdkModifierType modifiers;
+  GdkModifierType buttons;
   GdkWindow *pointer_focus;
   GdkWindow *keyboard_focus;
   struct wl_data_device *data_device;
@@ -317,7 +318,7 @@ gdk_wayland_device_query_state (GdkDevice        *device,
   if (child_window)
     *child_window = wd->pointer_focus;
   if (mask)
-    *mask = wd->modifiers;
+    *mask = wd->modifiers | wd->buttons;
 
   get_coordinates (wd, win_x, win_y, root_x, root_y);
 }
@@ -413,7 +414,7 @@ gdk_wayland_device_window_at_position (GdkDevice       *device,
   if (win_y)
     *win_y = wd->surface_y;
   if (mask)
-    *mask = wd->modifiers;
+    *mask = wd->modifiers | wd->buttons;
 
   return wd->pointer_focus;
 }
@@ -796,7 +797,7 @@ pointer_handle_motion (void              *data,
   gdk_event_set_source_device (event, device->pointer);
   event->motion.time = time;
   event->motion.axes = NULL;
-  event->motion.state = device->modifiers;
+  event->motion.state = device->modifiers | device->buttons;
   event->motion.is_hint = 0;
   gdk_event_set_screen (event, display->screen);
 
@@ -856,7 +857,7 @@ pointer_handle_button (void              *data,
   gdk_event_set_source_device (event, device->pointer);
   event->button.time = time;
   event->button.axes = NULL;
-  event->button.state = device->modifiers;
+  event->button.state = device->modifiers | device->buttons;
   event->button.button = gdk_button;
   gdk_event_set_screen (event, display->screen);
 
@@ -868,9 +869,9 @@ pointer_handle_button (void              *data,
 
   modifier = 1 << (8 + gdk_button - 1);
   if (state)
-    device->modifiers |= modifier;
+    device->buttons |= modifier;
   else
-    device->modifiers &= ~modifier;
+    device->buttons &= ~modifier;
 
   GDK_NOTE (EVENTS,
 	    g_message ("button %d %s, state %d",
@@ -918,7 +919,7 @@ pointer_handle_axis (void              *data,
   event->scroll.direction = GDK_SCROLL_SMOOTH;
   event->scroll.delta_x = delta_x;
   event->scroll.delta_y = delta_y;
-  event->scroll.state = device->modifiers;
+  event->scroll.state = device->modifiers | device->buttons;
   gdk_event_set_screen (event, display->screen);
 
   get_coordinates (device,
@@ -1178,7 +1179,7 @@ deliver_key_event (GdkWaylandDeviceData *device,
   gdk_event_set_device (event, device->master_keyboard);
   gdk_event_set_source_device (event, device->keyboard);
   event->key.time = time_;
-  event->key.state = device->modifiers;
+  event->key.state = device->modifiers | device->buttons;
   event->key.group = 0;
   event->key.hardware_keycode = key;
   event->key.keyval = sym;
@@ -1351,7 +1352,7 @@ _create_touch_event (GdkWaylandDeviceData *device,
   gdk_event_set_device (event, device->master_pointer);
   gdk_event_set_source_device (event, device->touch);
   event->touch.time = time;
-  event->touch.state = device->modifiers;
+  event->touch.state = device->modifiers | device->buttons;
   gdk_event_set_screen (event, display->screen);
   event->touch.sequence = GDK_SLOT_TO_EVENT_SEQUENCE (touch->id);
 
