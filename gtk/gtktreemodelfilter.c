@@ -1365,10 +1365,11 @@ gtk_tree_model_filter_check_ancestors (GtkTreeModelFilter *filter,
     return;
 
   if (filter->priv->virtual_root)
-    gtk_tree_model_get_iter (filter->priv->child_model, &c_iter,
-                             filter->priv->virtual_root);
-
-  tmp_iter = c_iter;
+    {
+      gtk_tree_model_get_iter (filter->priv->child_model, &c_iter,
+                               filter->priv->virtual_root);
+      tmp_iter = c_iter;
+    }
   gtk_tree_model_iter_nth_child (filter->priv->child_model, &c_iter,
                                  filter->priv->virtual_root ? &tmp_iter : NULL,
                                  indices[i]);
