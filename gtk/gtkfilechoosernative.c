@@ -360,42 +360,6 @@ override_delete_handler (GtkDialog *dialog,
   return TRUE; /* Do not destroy */
 }
 
-static char *
-translate_mnemonics (const char *src)
-{
-  GString *s;
-  const char *p;
-
-  if (src == NULL)
-    return NULL;
-  
-  s = g_string_new_len ("", strlen (src) + 1);
-      
-  for (p = src; *p; p++)
-    {
-      if (*p == '_')
-        {
-          /* __ is _ escaped */
-          if (*(p+1) == '_')
-            {
-              g_string_append_c (s, '_');
-              p++;
-            }
-          else
-            g_string_append_c (s, '&');
-        }
-      else if (*p == '&')
-        {
-          /* Win32 needs ampersands double-escaped */
-          g_string_append (s, "&&&");
-        }
-      else
-        g_string_append_c (s, *p);
-    }
-
-  return g_string_free (s, FALSE);
-}
-
 static void
 gtk_file_chooser_native_init (GtkFileChooserNative *self)
 {

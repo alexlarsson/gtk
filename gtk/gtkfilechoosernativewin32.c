@@ -629,16 +629,19 @@ translate_mnemonics (const char *src)
 {
   GString *s;
   const char *p;
+  char c;
 
   if (src == NULL)
     return NULL;
   
-  s = g_string_new_len ("", strlen (src) + 1);
+  s = g_string_sized_new (strlen (src));
       
   for (p = src; *p; p++)
     {
-      if (*p == '_')
+      c = *p;
+      switch (c)
         {
+        case '_':
           /* __ is _ escaped */
           if (*(p+1) == '_')
             {
@@ -647,14 +650,13 @@ translate_mnemonics (const char *src)
             }
           else
             g_string_append_c (s, '&');
+          break;
+        case '&':
+          /* Win32 needs ampersands escaped */
+          g_string_append (s, "&&");
+        default:
+          g_string_append_c (s, c);
         }
-      else if (*p == '&')
-        {
-          /* Win32 needs ampersands double-escaped */
-          g_string_append (s, "&&&");
-        }
-      else
-        g_string_append_c (s, *p);
     }
 
   return g_string_free (s, FALSE);
